@@ -27,7 +27,7 @@ export default class Git {
   public async getRepositoryRoot(repositoryPath: string): Promise<string> {
     const result = await this.exec(repositoryPath, ['rev-parse', '--show-toplevel'])
     let repoRootPath = path.normalize(result.stdout.trim());
-    if (process.platform === 'win32' && repoRootPath.startsWith('\\') && !process.env.SHELL) {
+    if (process.platform === 'win32' && repoRootPath.startsWith('\\')) {
       repoRootPath = repoRootPath.replace(/^\\([^\\]*)\\/, '$1:\\')
     }
     return repoRootPath;
@@ -71,6 +71,7 @@ export default class Git {
       this.channel.append(result.stdout)
       return Promise.reject(new Error('Failed to execute git'))
     }
+    // console.log(`--------------\n${result.stdout}\n`)
     return result
   }
 
@@ -87,15 +88,17 @@ export default class Git {
     options.env = Object.assign({}, process.env, options.env || {}, {
       LC_ALL: 'en_US.UTF-8',
       LANG: 'en_US.UTF-8'
-    })
+   })
 
     if (process.platform === 'win32') {
-      options.shell = true
+      options.shell = options.env.SHELL ? options.env.SHELL : true
+      // options.shell = true
     }
 
     if (options.log !== false) {
-      this.log(`> git ${args.join(' ')}\n`)
+      this.log(`> git(${this.gitInfo.path}) ${args.join(' ')}\n`)
     }
+      // console.log(`> git(${this.gitInfo.path}) ${args.join(' ')}\n options: ${JSON.stringify(options)}\n`)
 
     return cp.spawn(this.gitInfo.path, args, options)
   }
@@ -161,6 +164,7 @@ async function exec(child: cp.ChildProcess, cancellationToken?: CancellationToke
 
   try {
     const [exitCode, stdout, stderr] = await result
+    // console.log(`exitCode: ${exitCode}, stdout: ${stdout}, stderr: ${stderr}`)
     return { exitCode, stdout, stderr }
   } finally {
     disposeAll(disposables)

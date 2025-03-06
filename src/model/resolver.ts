@@ -3,6 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import { promisify } from 'util'
 import Git from './git'
+import {toUnixSlash} from '../util'
 
 export interface GitDocument {
   uri: string
@@ -12,6 +13,9 @@ export interface GitDocument {
 
 async function getRealPath(fullpath: string): Promise<string> {
   let resolved: string
+  if (process.platform === 'win32' && fullpath.startsWith('\\')) {
+    fullpath = toUnixSlash(fullpath.replace(/^\\([^\\]*)\\/, '$1:\\'))
+  }
   try {
     resolved = await promisify(fs.realpath)(fullpath, 'utf8')
   } catch (e) {
@@ -91,7 +95,7 @@ export default class Resolver {
       }
     }
     if (root) {
-      this.relativePaths.set(uri, path.relative(root, fullpath))
+      this.relativePaths.set(uri, toUnixSlash(path.relative(root, fullpath)))
     }
     this.channel.appendLine(`resolved root of ${fullpath}: ${root}`)
     return root

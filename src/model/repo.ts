@@ -230,6 +230,7 @@ export default class Repo {
 
   public async isIndexed(relpath: string): Promise<boolean> {
     let res = await this.exec(['ls-files', '--', relpath])
+    // console.log(`repo.ts: isIndexed > ${res.stdout}`)
     return res.stdout && res.stdout.trim().length > 0
   }
 

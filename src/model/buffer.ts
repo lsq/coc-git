@@ -151,7 +151,7 @@ export default class GitBuffer implements Disposable {
     }
     if (invalid) return
     line = line + adjust
-    let stagedDiff = await this.repo.getStagedChunks(this.relpath)
+    let stagedDiff = await this.repo.getStagedChunks(toUnixSlash(this.relpath))
     let chunks: StageChunk[] = Object.values(stagedDiff)[0]
     if (!chunks.length) {
       window.showErrorMessage(`Staged chunk not found`)
@@ -163,7 +163,7 @@ export default class GitBuffer implements Disposable {
       return
     }
     this.channel.appendLine(`[Info] resolved chunk ${JSON.stringify(chunk, null, 2)}`)
-    let patch = createUnstagePatch(this.relpath, chunk)
+    let patch = createUnstagePatch(toUnixSlash(this.relpath), chunk)
     if (!patch) return
     try {
       await this.git.exec(this.repo.root, ['apply', '--cached', '--unidiff-zero', '-'], { input: patch })
@@ -215,7 +215,7 @@ export default class GitBuffer implements Disposable {
     } else {
       let chunks: StageChunk[] = []
       try {
-        let stagedDiff = await this.repo.getStagedChunks(this.relpath)
+        let stagedDiff = await this.repo.getStagedChunks(toUnixSlash(this.relpath))
         chunks = Object.values(stagedDiff)[0]
       } catch (e) {
         // return
@@ -278,7 +278,7 @@ export default class GitBuffer implements Disposable {
   }
 
   public async showBlameDoc(lnum: number): Promise<void> {
-    let indexed = await this.repo.isIndexed(this.relpath)
+    let indexed = await this.repo.isIndexed(toUnixSlash(this.relpath))
     if (!indexed) {
       window.showWarningMessage('File not indexed')
     } else if (await this.repo.isShallow()) {
@@ -305,7 +305,7 @@ export default class GitBuffer implements Disposable {
     let content = this.doc.content
     let eol = this.doc.textDocument['eol']
     let encoding = await this.doc.buffer.getOption('fileencoding') as string
-    const diffs = await this.repo.getDiff(this.relpath, eol ? content : content + '\n', revision, encoding || 'utf8')
+    const diffs = await this.repo.getDiff(toUnixSlash(this.relpath), eol ? content : content + '\n', revision, encoding || 'utf8')
     if (diffs == null) return
     if (diffs.length === 0) {
       this.currentSigns = []
@@ -388,7 +388,7 @@ export default class GitBuffer implements Disposable {
   private async loadBlames(): Promise<void> {
     if (!this.showBlame) return
     let result: BlameInfo[] = []
-    let indexed = await this.repo.isIndexed(this.relpath)
+    let indexed = await this.repo.isIndexed(toUnixSlash(this.relpath))
     if (indexed) result = await this.getBlameInfo()
     this.blameInfo = result
   }
@@ -608,14 +608,15 @@ export default class GitBuffer implements Disposable {
 
   // show commit of current line in split window
   public async showCommit(useFloating = false): Promise<void> {
-    let indexed = await this.repo.isIndexed(this.relpath)
+    let indexed = await this.repo.isIndexed(toUnixSlash(this.relpath))
+    // console.log(`coc-git: indexed: ${indexed}`)
     if (!indexed) {
       window.showWarningMessage(`"${this.relpath}" not indexed.`)
       return
     }
     let nvim = workspace.nvim
     let line = await nvim.eval('line(".")') as number
-    let args = ['--no-pager', 'blame', '-w', '-l', '--root', '-t', `-L${line},${line}`, this.relpath]
+    let args = ['--no-pager', 'blame', '-w', '-l', '--root', '-t', `-L${line},${line}`, toUnixSlash(this.relpath)]
     let res = await this.repo.exec(args)
     let output = res.stdout.trim()
     if (!output.length) return
