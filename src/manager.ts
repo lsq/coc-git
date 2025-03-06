@@ -90,6 +90,8 @@ export default class DocumentManager {
     let obj: GitConfiguration = {
       remoteName: config.get<string>('remoteName', 'origin'),
       diffRevision: config.get<string>('diffRevision', ''),
+      foldContext: config.get<number>('foldContext', 0),
+      diffOptions: config.get<string[]>('diffOptions', []),
       issueFormat: config.get<string>('issueFormat', '#%i'),
       virtualTextPrefix: config.get<string>('virtualTextPrefix', '     '),
       addGBlameToVirtualText: config.get<boolean>('addGBlameToVirtualText', false),
@@ -124,7 +126,8 @@ export default class DocumentManager {
       conflict: {
         enabled: config.get<boolean>('conflict.enabled', true),
         currentHlGroup: config.get<string>('conflict.current.hlGroup', 'DiffChange'),
-        incomingHlGroup: config.get<string>('conflict.incoming.hlGroup', 'DiffAdd')
+        incomingHlGroup: config.get<string>('conflict.incoming.hlGroup', 'DiffAdd'),
+        commonHlGroup: config.get<string>('conflict.common.hlGroup', 'DiffText')
       },
       floatConfig: config.get<any>('floatConfig', {}),
       gstatus: {
@@ -146,6 +149,10 @@ export default class DocumentManager {
 
   public get git(): Git {
     return this.service.git
+  }
+
+  public get diffOptions(): ReadonlyArray<string> {
+    return this.config.diffOptions
   }
 
   public async toggleGutters(): Promise<void> {
@@ -276,7 +283,7 @@ export default class DocumentManager {
     let root = await this.resolveGitRootFromBufferOrCwd(bufnr)
     let extra = this.config.pushArguments
     if (!root) {
-      window.showMessage(`not belongs to git repository.`, 'warning')
+      window.showWarningMessage(`not belongs to git repository.`)
       return
     }
     if (args && args.length) {
@@ -288,13 +295,13 @@ export default class DocumentManager {
     let output = await repo.safeRun(['remote'])
     let remote = output.trim().split(/\r?\n/)[0]
     if (!remote) {
-      window.showMessage(`remote not found`, 'warning')
+      window.showWarningMessage(`remote not found`)
       return
     }
     // resolve current branch
     output = await repo.safeRun(['rev-parse', '--abbrev-ref', 'HEAD'])
     if (!output) {
-      window.showMessage(`current branch not found`, 'warning')
+      window.showWarningMessage(`current branch not found`)
       return
     }
     await window.runTerminalCommand(`git push ${remote} ${output}${extra.length ? ' ' + extra.join(' ') : ''}`, root, true)
@@ -303,7 +310,7 @@ export default class DocumentManager {
   private get buffer(): Promise<GitBuffer> {
     return workspace.nvim.call('bufnr', '%').then(bufnr => {
       let buf = this.buffers.get(bufnr)
-      if (!buf) window.showMessage(`Cant't resolve git repository for current buffer.`, 'warning')
+      if (!buf) window.showWarningMessage(`Cant't resolve git repository for current buffer.`)
       return buf
     })
   }
@@ -316,7 +323,7 @@ export default class DocumentManager {
     let bufnr = await workspace.nvim.call('bufnr', '%')
     let root = await this.resolveGitRootFromBufferOrCwd(bufnr)
     if (!root) {
-      window.showMessage(`not belongs to git repository.`, 'warning')
+      window.showWarningMessage(`not belongs to git repository.`)
       return null
     }
     let repo = this.service.getRepoFromRoot(root)

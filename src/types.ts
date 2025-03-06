@@ -2,6 +2,7 @@
 export interface GitConfiguration {
   remoteName: string
   diffRevision: string
+  diffOptions: string[]
   issueFormat: string
   virtualTextPrefix: string
   addGBlameToVirtualText: boolean
@@ -10,6 +11,7 @@ export interface GitConfiguration {
   enableGutters: boolean
   realtimeGutters: boolean
   signPriority: number
+  foldContext: number,
   pushArguments: string[]
   splitWindowCommand: string
   showCommitInFloating: boolean
@@ -37,6 +39,7 @@ export interface GitConfiguration {
     enabled: boolean
     currentHlGroup: string
     incomingHlGroup: string
+    commonHlGroup: string
   }
   floatConfig: {
     border?: boolean
@@ -122,6 +125,7 @@ export enum DiffCategory {
 
 export interface Conflict {
   start: number
+  common?: number
   sep: number
   end: number
   current: string
@@ -142,6 +146,7 @@ export interface FoldSettings {
 export enum ConflictParseState {
   Initial,
   MatchedStart,
+  MatchedCommon,
   MatchedSep,
 }
 

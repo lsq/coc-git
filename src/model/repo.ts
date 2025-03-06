@@ -186,7 +186,7 @@ export default class Repo {
     let output = await getStdout(`git --no-pager diff --no-ext-diff -p -U0 --no-color ${args}`)
     if (!output) return diffGroups
 
-    /* Split diff output into lines and group by filename */ 
+    /* Split diff output into lines and group by filename */
     const lines = output.trim().split('\n')
     let lineGroups: Map<string, string[]> = new Map()
     let file: string = null
@@ -242,6 +242,15 @@ export default class Repo {
     } catch (e) {
       this.userName = ''
       return ''
+    }
+  }
+
+  public async isShallow(): Promise<boolean> {
+    try {
+      let res = await this.exec(['rev-parse', '--is-shallow-repository'])
+      return res.stdout.trim() === 'true'
+    } catch (e) {
+      return false
     }
   }
 

@@ -25,10 +25,10 @@ export async function activate(context: ExtensionContext): Promise<ExtensionApi 
   const { subscriptions } = context
   let gitInfo: IGit
   try {
-    let pathHint = config.get<string>('command')
+    let pathHint = config.get<string>('command', 'git')
     gitInfo = await findGit(pathHint, path => context.logger.info(`Looking for git in: ${path}`))
   } catch (e) {
-    window.showMessage('git command required for coc-git', 'error')
+    window.showErrorMessage('git command required for coc-git')
     return
   }
   const virtualTextSrcId = await workspace.nvim.createNamespace('coc-git-virtual')
@@ -82,6 +82,14 @@ export async function activate(context: ExtensionContext): Promise<ExtensionApi 
   subscriptions.push(workspace.registerKeymap(['n'], 'git-showblamedoc', async () => {
     await manager.showBlameDoc()
   }, { sync: false }))
+
+  subscriptions.push(commands.registerCommand("git.nextChunk", async () => {
+    await manager.nextChunk();
+  }));
+
+  subscriptions.push(commands.registerCommand("git.prevChunk", async () => {
+    await manager.prevChunk();
+  }));
 
   subscriptions.push(commands.registerCommand('git.keepCurrent', async () => {
     await manager.keepCurrent()

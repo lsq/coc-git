@@ -30,7 +30,7 @@ In your vim/neovim, run command:
 - Git related lists, including `issues`, `gfiles`, `gstatus`, `commits`, `branches` & `bcommits`
 - Keymaps for git chunks, including `<Plug>(coc-git-chunkinfo)` `<Plug>(coc-git-nextchunk)` & `<Plug>(coc-git-prevchunk)` ,
 - Commands for chunks, including `git.chunkInfo` `git.chunkStage` `git.chunkUndo` and more.
-- Keymaps for git conflicts, including `<Plug>(coc-git-nextconflict)`, `<Plug>(coc-git-prevconflict)`, `<Plug>(coc-git-keepcurrent)`, `<Plug>(coc-git-keepincoming)` & `<Plug>(coc-git-keepboth)`.
+- Keymaps & commands for git conflicts.
 - Completion support for semantic commit.
 - Completion support for GitHub/GitLab issues.
 
@@ -49,6 +49,10 @@ In your vim/neovim, run command:
 - `git.command`: Command for git, could be absolute path of git executable., default: `"git"`
 
 - `git.remoteName`: Remote name for fetch github issues., default: `"origin"`
+
+- `git.diffOptions`: Options for git diff command, eg: `["--ignore-all-space"]`, default: `[]`
+
+- `git.foldContext`: Line count to leave below and above the fold, default: `0`.
 
 - `git.browserRemoteName`: Remote name for browserOpen and copyUrl., default: `""`
 
@@ -214,7 +218,9 @@ xmap ag <Plug>(coc-git-chunk-outer)
 Use command `:CocCommand` to open commands and type `git.` to get all git
 related commands.
 
-- `:CocCommand git.copyUrl` Copy url of current line to clipboard
+- `:CocCommand git.copyUrl` Copy url of current line to clipboard.
+- `:CocCommand git.nextChunk` Navigate to the next chunk.
+- `:CocCommand git.prevChunk` Navigate to the previous chunk.
 - `:CocCommand git.chunkInfo` Show chunk info under cursor.
 - `:CocCommand git.chunkUndo` Undo current chunk.
 - `:CocCommand git.chunkStage` Stage current chunk.

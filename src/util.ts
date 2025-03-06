@@ -77,7 +77,7 @@ export function spawnCommand(cmd: string, args: string[], cwd: string): Promise<
       res += data.toString()
     })
     cp.stderr.on('data', data => {
-      window.showMessage(`"${cmd} ${args.join(' ')}" error: ${data.toString()}`, 'error')
+      window.showErrorMessage(`"${cmd} ${args.join(' ')}" error: ${data.toString()}`)
     })
     cp.on('close', code => {
       if (code != 0) {
@@ -186,7 +186,9 @@ export function equals(one: any, other: any): boolean {
   return true
 }
 
-export function getRepoUrl(remote: string): string {
+export function getRepoUrl(remote: string): string | null {
+  // Remote is local directory
+  if (path.isAbsolute(remote)) return null
   let url = remote.replace(/\s+$/, '').replace(/\.git$/, '')
   if (url.startsWith('git@')) {
     let str = url.slice(4)
